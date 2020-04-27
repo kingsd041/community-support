@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-token=kingsd041:88c81fd04e36d40dd9b3570c88450eb521aa7cac
+token=$1
 
 download_dir="/usr/share/nginx/html/download"
 
