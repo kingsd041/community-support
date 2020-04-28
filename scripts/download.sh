@@ -46,7 +46,7 @@ cli_download()
     done
 }
 
-## Rancher
+## Rancher release assets
 rancher_assets_download()
 {   
     repo=rancher/rancher
@@ -143,6 +143,56 @@ k3s_install()
     curl https://raw.githubusercontent.com/xiaoluhong/k3s/master/install.sh -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/k3s-install.sh
 }
 
+## Kubectl
+kubectl_download()
+{
+    repo=kubernetes/kubernetes
+
+    version=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/git/refs/tags | jq -r .[].ref | awk -F/ '{print $3}' | grep v | awk -Fv '{print $2}' | grep -v [a-z] | awk -F"." '{arr[$1"."$2]=$3}END{for(var in arr){if(arr[var]==""){print var}else{print var"."arr[var]}}}'|sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3 | grep -v ^0. | grep -vw ^1.[0-5] )
+    for ver in $version;
+    do
+        mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver
+        curl -LSs https://storage.googleapis.com/kubernetes-release/release/v$ver/bin/linux/amd64/kubectl -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/linux-amd64-v$ver-kubectl
+        curl -LSs https://storage.googleapis.com/kubernetes-release/release/v$ver/bin/darwin/amd64/kubectl -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/darwin-amd64-v$ver-kubectl
+        curl -LSs https://storage.googleapis.com/kubernetes-release/release/v$ver/bin/windows/amd64/kubectl.exe -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/windows-amd64-v$ver-kubectl.exe
+    done
+    mv $download_dir/`echo $repo | awk -F/ '{ print $2 }'` $download_dir/kubectl
+}
+
+## Docker-compose
+compose_download()
+{
+    repo=docker/compose
+
+    version=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/git/refs/tags | jq -r .[].ref | awk -F/ '{print $3}' | grep -v [a-z] | awk -F"." '{arr[$1"."$2]=$3}END{for(var in arr){if(arr[var]==""){print var}else{print var"."arr[var]}}}' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3 | grep -v ^0. | grep -vw ^1.[0-9] )
+
+    for ver in $version;
+    do
+        mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver
+        file_name=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/releases/tags/$ver | jq -r .assets[].browser_download_url | awk -F"/$ver/" '{print $2}' | grep -v sha256sum | grep -v run.sh | grep -v sha256 )
+
+        for file in $file_name;
+        do
+            curl -LSs https://github.com/$repo/releases/download/$ver/$file -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/$file
+        done
+    done
+    mv $download_dir/`echo $repo | awk -F/ '{ print $2 }'` $download_dir/`echo $repo | awk -F/ '{ print $1 }'`-`echo $repo | awk -F/ '{ print $2 }'`
+}
+
+## Harbor
+harbor_download()
+{
+    repo=goharbor/harbor
+
+    version=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/git/refs/tags | jq -r .[].ref | grep v | awk -F/ '{print $3}' |  awk -Fv '{print $2}' | grep -v [a-z] | awk -F"." '{arr[$1"."$2]=$3}END{for(var in arr){if(arr[var]==""){print var}else{print var"."arr[var]}}}' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3 | grep -vw ^1.[0-5] )
+
+    for ver in $version;
+    do
+        mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver
+        curl -LSs https://storage.googleapis.com/harbor-releases/release-`echo $ver | awk -F. '{ print $1"."$2 }'`.0/harbor-online-installer-v$ver.tgz -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/harbor-online-installer-v$ver.tgz
+    done
+}
+
 
 rke_download
 cli_download
@@ -150,3 +200,6 @@ rancher_assets_download
 rancher_charts_download
 k3s_download
 k3s_install
+kubectl_download
+compose_download
+harbor_download
