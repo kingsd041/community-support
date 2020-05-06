@@ -413,7 +413,7 @@
       async mounted() {
         window.onhashchange = () => {
           let locationHash = window.location.hash.replace(/^#/, '');
-          this.pathPrefix = locationHash.replace(/^\//, '');
+          this.pathPrefix = locationHash.replace(/^\//, '').split('/').map(k => encodeURIComponent(k)).join('/');
         };
         window.onhashchange();
 
