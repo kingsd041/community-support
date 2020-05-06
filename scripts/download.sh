@@ -19,6 +19,7 @@ compare_version()
             echo "`date '+%F %T %A'`:  `echo $repo | awk -F/ '{ print $2 }'` v$v already exists in aliyun oss"
         fi
     done
+    [[ -n $new_version ]] && echo "`date '+%F %T %A'`:  Downloading `echo $repo | awk -F/ '{ print $2 }'` $new_version ..."
 }
 
 
