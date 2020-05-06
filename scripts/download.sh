@@ -1,5 +1,4 @@
 #!/bin/bash
-
 token=$1
 
 download_dir="/opt/rancher-mirror"
@@ -149,6 +148,11 @@ urlencode() {
     done
 }
 
+urldecode(){
+u="${1//+/ }"
+echo -e "${u//%/\\x}"
+}
+
 ## k3s
 
 k3s_download()
@@ -159,7 +163,7 @@ k3s_download()
 
     oss_version=$(ossutil ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
 
-    version_urlencode=""
+    #version_urlencode=""
     for ver in $version
     do
 	ver1=`urlencode "$ver"`
@@ -169,18 +173,20 @@ k3s_download()
     for oss_ver in $oss_version
     do
 	oss_ver1=`urlencode "$oss_ver"`
-        oss_version="$oss_version $oss_ver1"
+        oss_version_urlencode="$oss_version_urlencode $oss_ver1"
     done
-    compare_version "$version_urlencode" "$oss_oss_version_urlencode"
+    compare_version "$version_urlencode" "$oss_version_urlencode"
+
+    new_version=`urldecode "$new_version"`
 
     for ver in $new_version;
     do
         mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/$ver
-        file_name=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/releases/tags/$ver | jq -r .assets[].browser_download_url | awk -F/$ver/ '{print $2}'  )
+        file_name=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/releases/tags/$ver | jq -r .assets[].browser_download_url | awk -F "\/" '{print $NF}'  )
 
         for file in $file_name;
         do
-            curl -LSs https://github.com/$repo/releases/download/$ver/$file -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/$ver/$file
+   	      curl -LSs https://github.com/$repo/releases/download/$ver/$file -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/$ver/$file
         done
     done
 }
