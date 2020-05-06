@@ -1,0 +1,533 @@
+  <!DOCTYPE html>
+<html lang="en" style="overflow-y: auto;">
+
+<head>
+  <script>
+    const config = {
+      keyExcludePatterns: [ /^index\.html$/,/^rancher\.svg$/ ,/^favicon\.ico$/ ],
+      pageSize: 50,
+      title: 'Rancher Releases Mirror',
+      subtitle: 'Supported by Rancher China Team',
+      logo: 'rancher.svg',
+      favicon: 'favicon.ico'
+    }
+  </script>
+  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link id="favicon" rel="shortcut icon"/>
+  <script src="https://unpkg.com/vue@2.6.10"></script><script>Vue.config.productionTip = false;</script>
+  <script src="https://unpkg.com/buefy@0.8.6/dist/buefy.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/buefy@0.8.6/dist/buefy.min.css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css">
+  <link rel="stylesheet" href="https://cdn.materialdesignicons.com/2.5.94/css/materialdesignicons.min.css">
+  <script src="https://unpkg.com/moment@2.14.1/min/moment.min.js"></script>
+</head>
+
+<body class="notification" style="width: 100vw; min-height: 100vh; overflow-y: auto;">
+  
+  <div id="app">
+  
+    <div class="container">
+      <div class="level">
+        <div class="level-left">
+          <figure class="level-item image is-128x128" style="margin-right: 1.5rem;">
+            <img :src="config.logo"/>
+          </figure>
+          <div>
+            <h1 class="title">{{config.title}}</h1>
+            <h2 class="subtitle">{{config.subtitle}}</h2>
+          </div>
+        </div>
+      </div>
+      
+      <div class="container is-clearfix">
+        <div class="buttons is-pulled-left">
+          <b-button v-for="(breadcrump, index) in pathBreadcrumps" v-bind:key="breadcrump.url" 
+            type="is-info" rounded
+            tag="a" 
+            :href="breadcrump.url" 
+            icon-pack="fas"
+            :icon-left="index == 0 ? 'folder' : ''"
+            target=""
+            :style="{ fontWeight: index == 0 ? 'bolder': ''}"
+            >
+            <template v-if="index == 0">/</template>
+            <template v-else="index > 0">{{breadcrump.name}}</template>
+          </b-button>
+        </div>
+        <div v-show="nextContinuationToken || previousContinuationTokens.length > 0"
+          class="buttons is-pulled-right">
+          <b-button
+            type="is-info" rounded
+            icon-pack="fas"
+            icon-left="angle-left"
+            @click="previousPage"
+            :disabled="previousContinuationTokens.length === 0"
+            >
+          </b-button>
+          <b-button
+            type="is-info" rounded
+            icon-pack="fas"
+            icon-right="angle-right"
+            @click="nextPage"
+            :disabled="!nextContinuationToken"
+            >
+          </b-button>
+        </div>
+      </div>
+
+      <b-table 
+        v-if="!isMobileBreakoint"
+        :data="pathContentTableData" 
+        >
+        <template slot-scope="props">
+          <b-table-column 
+            field="name"
+            label="Name"
+            sortable :custom-sort="sortTableData('name')"
+            >
+            <b-icon 
+              class="row-title-icon"
+              pack="far" 
+              :icon="props.row.type === 'prefix' ? 'folder' : 'file-alt'"
+              >
+            </b-icon>
+            <b-button 
+              type="is-info is-text" inverted rounded 
+              tag="a" 
+              :href="props.row.type === 'content' ? props.row.url : `#${props.row.prefix}`" 
+              style="text-align: left;"
+              >
+              {{ props.row.name }}
+            </b-button>
+            <b-button 
+              v-if="props.row.installUrl"
+              type="is-info" rounded 
+              tag="a" 
+              :href="props.row.installUrl"  
+              style="margin-left: 0.5rem; height: 1.7rem; padding: 12px;"
+              >
+              Install
+            </b-button>
+          </b-table-column>
+          <b-table-column
+            field="size" numeric 
+            label="Size"
+            sortable :custom-sort="sortTableData('size')"
+            centered width="128"
+            >
+            {{ props.row.size | formatBytes}}
+          </b-table-column>
+          <b-table-column 
+              field="dateModified" 
+              label="Date Modified"
+              sortable :custom-sort="sortTableData('dateModified')"
+              centered width="256"
+              >
+              <b-tooltip
+                type="is-light"
+                size="is-small"
+                position="is-left"
+                animated
+                :label="props.row.dateModified | formatDate"
+                >
+                {{ props.row.dateModified | formatDateRelative }}
+              </b-tooltip>
+          </b-table-column>
+        </template>
+      </b-table>
+      
+      <b-table 
+        v-if="isMobileBreakoint"
+        :data="pathContentTableData"
+        >
+        <template slot-scope="props">
+          <b-table-column 
+            class="mobile-row"
+            >
+            <b-icon 
+              class="row-title-icon"
+              pack="far" 
+              :icon="props.row.type === 'prefix' ? 'folder' : 'file-alt'"
+              >
+            </b-icon>
+            
+            <div class="mobile-row-title">
+              <b-button 
+                type="is-info is-text" inverted rounded 
+                tag="a" 
+                :href="props.row.type === 'content' ? props.row.url : `#${props.row.prefix}`" 
+                style="text-align: left"
+                >
+                {{ props.row.name }}
+              </b-button>
+              <b-button 
+                v-if="props.row.installUrl"
+                type="is-info" rounded 
+                tag="a" 
+                :href="props.row.installUrl"  
+                style="margin-left: 0.5rem; height: 1.7rem; padding: 12px;"
+                >
+                Install
+              </b-button>
+            </div>
+            
+            <div 
+              v-if="props.row.size || props.row.dateModified"
+              class="mobile-row-subtitle"
+              >
+              <div>
+                {{ props.row.size | formatBytes}}
+              </div>
+              <b-tooltip
+                type="is-light"
+                position="is-left"
+                animated
+                :label="props.row.dateModified | formatDate"
+                class="mobile-date-tooltip"
+                >
+                {{ props.row.dateModified | formatDateRelative }}
+              </b-tooltip>
+            </div>
+          </b-table-column>
+          
+          <!-- dummy colums to make mobile rows sortable -->
+          <b-table-column v-show='false'
+            field="name"
+            label="Name"
+            sortable :custom-sort="sortTableData('name')"
+            >
+          </b-table-column>
+          <b-table-column v-show='false'
+            field="size"
+            label="Size"
+            sortable :custom-sort="sortTableData('size')"
+            >
+          </b-table-column>
+          <b-table-column v-show='false'
+            field="dateModified" 
+            label="Date Modified"
+            sortable :custom-sort="sortTableData('dateModified')"
+            >
+          </b-table-column>
+        </template>
+      </b-table>
+      
+      <div class="container is-clearfix" style="margin-top: 1rem;">
+        <div v-show="nextContinuationToken || previousContinuationTokens.length > 0"
+          class="buttons is-pulled-right">
+          <b-button
+            type="is-info" rounded
+            icon-pack="fas"
+            icon-left="angle-left"
+            @click="previousPage"
+            :disabled="previousContinuationTokens.length === 0"
+            >
+          </b-button>
+          <b-button
+            type="is-info" rounded
+            icon-pack="fas"
+            icon-right="angle-right"
+            @click="nextPage"
+            :disabled="!nextContinuationToken"
+            >
+          </b-button>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bucket-url">Bucket: {{ config.bucketUrl }}</div>    
+  </div>
+  
+  <script>
+    
+    if(!config.bucketUrl){
+      let location = new URL(window.location);
+      
+      config.bucketUrl = location.origin
+    }
+  
+  
+    document.title = config.title;
+    document.getElementById('favicon').href = config.favicon;
+
+    Vue.use(Buefy.default, {
+    	defaultIconPack: 'fa'
+    });
+    
+    new Vue({
+      el: '#app',
+      data: {
+        windowWidth: window.innerWidth,
+        config, // defined in <head> section
+        pathPrefix: null,
+        
+        pathContentTableData: [],
+        
+        previousContinuationTokens: [],
+        continuationToken: undefined,
+        nextContinuationToken: undefined
+      },
+      computed: {
+        pathBreadcrumps() {
+          return `/${this.pathPrefix}`.match(/(?=[/])|[^/]+[/]?/g)
+            .map((pathPrefixPart, index, pathPrefixParts) => ({
+              name: pathPrefixPart,
+              url: '#' + pathPrefixParts.slice(0, index).join('') + pathPrefixPart
+            }));
+        },
+        isMobileBreakoint(){
+          return this.windowWidth <= 768
+        }
+      },
+      watch: {
+        pathPrefix() {
+          this.previousContinuationTokens = [];
+          this.continuationToken = undefined;
+          this.nextContinuationToken = undefined;
+          this.refresh();
+        }
+      },
+      methods: {
+        moment: moment,
+        previousPage(){
+          if(this.previousContinuationTokens.length > 0){
+            this.continuationToken = this.previousContinuationTokens.pop();
+            this.refresh();
+          }
+        },
+        nextPage(){
+          if(this.nextContinuationToken){
+            this.previousContinuationTokens.push(this.continuationToken);
+            this.continuationToken = this.nextContinuationToken;
+            this.refresh();
+          }
+        },
+        async refresh() {
+          let listBucketResult;
+          try {
+            let bucketListApiUrl = `${this.config.bucketUrl}?list-type=2`;
+            bucketListApiUrl += `&delimiter=/`;
+            bucketListApiUrl += `&prefix=${this.pathPrefix}`;
+            
+            if(this.config.pageSize){
+              bucketListApiUrl += `&max-keys=${this.config.pageSize}`;
+            }
+            if(this.continuationToken){
+              bucketListApiUrl += `&continuation-token=${encodeURIComponent(this.continuationToken)}`;
+            }
+            let listBucketResultResponse = await fetch(bucketListApiUrl);
+            let listBucketResultXml = await listBucketResultResponse.text();
+            
+            listBucketResult = new DOMParser().parseFromString(listBucketResultXml, "text/xml");
+            if (!listBucketResult.querySelector('ListBucketResult')){
+              throw Error("List bucket response does not contain <ListBucketResult> tag!");
+            }
+          } catch (error) {
+            this.$buefy.notification.open({
+                    message: escapeHTML(error.message),
+                    type: 'is-danger',
+                    duration: 60000,
+                    position: 'is-bottom'
+                });
+            throw error;
+          }
+          let nextContinuationTokenTag = listBucketResult.querySelector("NextContinuationToken");
+          this.nextContinuationToken =  nextContinuationTokenTag && nextContinuationTokenTag.textContent;
+          let commonPrefixes = [...listBucketResult.querySelectorAll("ListBucketResult > CommonPrefixes")].map(tag => ({
+            prefix: tag.querySelector('Prefix').textContent
+          }));
+          let contents = [...listBucketResult.querySelectorAll("ListBucketResult > Contents")].map(tag => ({
+            key: tag.querySelector('Key').textContent,
+            size: parseInt(tag.querySelector('Size').textContent),
+            dateModified: new Date(tag.querySelector('LastModified').textContent)
+          }));
+
+          this.pathContentTableData = [];
+          commonPrefixes
+            .forEach(prefix => {
+              this.pathContentTableData.push({
+                type: 'prefix',
+                name: prefix.prefix.split('/').slice(-2)[0] + '/',
+                
+                prefix: prefix.prefix
+              });
+            });
+          contents
+            .filter(content => !config.keyExcludePatterns.find(pattern => pattern.test(content.key)))
+            .forEach(content => {
+              if(content.key.endsWith('/') && !content.size){
+                if(content.key !== this.pathPrefix)
+                this.pathContentTableData.push({
+                  type: 'prefix',
+                  name: content.key.split('/')[0] + '/',
+                  
+                  prefix: `${this.pathPrefix}${content.key}`
+                });
+              } else { 
+                let url = `${this.config.bucketUrl}/${content.key}`;
+                let installUrl;
+                
+                let isIOS = /iPad|iPhone|iPod/.test(navigator.platform) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                if(isIOS && url.endsWith('/manifest.plist')){
+                  installUrl = `itms-services://?action=download-manifest&url=${url.replace(/\/[^/]*$/,'')}/manifest.plist`
+                }
+                
+                this.pathContentTableData.push({
+                  type: 'content',
+                  name: content.key.split('/').slice(-1)[0],
+                  size: content.size,
+                  dateModified: content.dateModified,
+
+                  key: content.key,
+                  url,
+                  installUrl
+                });
+              }
+            });
+        },
+        sortTableData(columnName) {          
+          return (rowA, rowB, isAsc) => {
+            if(rowA.type != rowB.type){
+              return rowA.type === 'prefix' ? -1 :1
+            }
+            
+            const valueA = rowA[columnName];
+            const valueB = rowB[columnName];
+            if(valueA != valueB){
+              if(valueA === undefined){
+                return isAsc ? -1 :  1;
+              }
+              if(valueB === undefined){
+                return isAsc ?  1 : -1;
+              }
+              return isAsc 
+                ? (valueA < valueB ? -1 :  1) 
+                : (valueA < valueB ?  1 : -1);
+            }
+            
+            return 0;
+          };
+        }
+      },
+      async mounted() {
+        window.onhashchange = () => {
+          let locationHash = window.location.hash.replace(/^#/, '');
+          this.pathPrefix = locationHash.replace(/^\//, '');
+        };
+        window.onhashchange();
+
+        
+        window.addEventListener('resize', () => {
+          this.windowWidth = window.innerWidth;
+        });
+      },
+      async beforeDestroy() {
+        window.removeEventListener('resize');
+      },
+      filters: {
+        formatBytes(size) {
+          if(!size){
+            return '-'
+          }
+          const KB = 1024;
+          if (size < KB) {
+              return size + '  B';
+          }
+          const MB = 1000000;
+          if (size < MB) {
+              return (size / KB).toFixed(0) + ' KB';
+          } 
+          const GB = 1000000000;
+          if (size < GB) {
+              return (size / MB).toFixed(2) + ' MB';
+          }
+          return (size / GB).toFixed(2) + ' GB';
+        },
+        formatDate(date) {
+          if(!date){
+            return '-'
+          }
+          return moment(date).format('dddd, MMMM Do, YYYY • hh:mm:ss')
+        },
+        formatDateRelative(date) {
+          if(!date){
+            return '-'
+          }
+          return moment(date).fromNow()
+        }
+      }
+    });
+    
+    function escapeHTML(unsafeText) {
+        let div = document.createElement('div');
+        div.innerText = unsafeText;
+        return div.innerHTML;
+    }
+  </script>
+  
+  <style>
+    .table {
+      background-color: transparent;
+    }
+    .table > tbody > tr {
+      background-color: #fff !important;
+    }
+    .button.is-text {
+      height: auto !important;
+      user-select: text !important;
+      box-shadow: none !important;
+      white-space: unset !important;
+      background: none !important;
+      background-color: transparent !important;
+      text-decoration: none !important;
+      padding: 0 !important;
+    }
+    
+    .table td {
+      vertical-align: middle !important;
+      align-items: center;
+      color: dimgray;
+    }
+    
+    .row-title-icon {
+      margin-right: 1rem;
+    }
+    
+    .mobile-row {
+      justify-content: flex-start !important;
+    }
+    .mobile-row::before {
+      display: none !important;
+    }
+    .mobile-row-title {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+    }
+    .mobile-row-subtitle {
+      flex: 1;
+      height: 3rem;
+      flex-basis: 6rem;
+      flex-shrink: 0;
+      font-size: 0.85rem;
+      line-height: 1.5rem;
+    }
+    .mobile-date-tooltip::after {
+      padding: .25rem .55rem;
+    }
+    .footer-bucket-url {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin-bottom: 0.5rem;
+      font-size: small;
+      text-align: center;
+      color: darkgray;
+    }
+  </style>
+  
+</body>
+
+</html>
