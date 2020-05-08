@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 token=$1
 
 download_dir="/opt/rancher-mirror"
@@ -30,7 +31,7 @@ rke_download()
 
     version=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/git/refs/tags | jq -r .[].ref | awk -F/ '{print $3}' | grep v | awk -Fv '{print $2}' | grep -v [a-z] | awk -F"." '{arr[$1"."$2]=$3}END{for(var in arr){if(arr[var]==""){print var}else{print var"."arr[var]}}}' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3 )
 
-    oss_version=$(ossutil ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+    oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
 
     compare_version "$version" "$oss_version"
 
@@ -55,7 +56,7 @@ cli_download()
 
     version=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/git/refs/tags | jq -r .[].ref | awk -F/ '{print $3}' | grep v | awk -Fv '{print $2}' | grep -v [a-z] | awk -F"." '{arr[$1"."$2]=$3}END{for(var in arr){if(arr[var]==""){print var}else{print var"."arr[var]}}}' | sort -r -u -t "." -k1n,1 -k2n,2 -k3n,3 | grep -vw ^0.[0-5] )
 
-    oss_version=$(ossutil ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+    oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
 
     compare_version "$version" "$oss_version"
 
@@ -80,7 +81,7 @@ rancher_assets_download()
 
     version=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/git/refs/tags | jq -r .[].ref | awk -F/ '{print $3}' | grep v | awk -Fv '{print $2}' | grep -v [a-z] | awk -F"." '{arr[$1"."$2]=$3}END{for(var in arr){if(arr[var]==""){print var}else{print var"."arr[var]}}}' | awk -F '.' '{if ($1>=2) print $0}' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3 )
 
-    oss_version=$(ossutil ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+    oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
 
     compare_version "$version" "$oss_version"
 
@@ -113,12 +114,12 @@ rancher_charts_download()
     repo=rancher/rancher
     version=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/git/refs/tags | jq -r .[].ref | awk -F/ '{print $3}' | grep v | awk -Fv '{print $2}' | grep -v [a-z] | sort -u -t "." -k1nr,1 -k2nr,2 -k3nr,3 | grep -v ^0. | grep -v ^1. | grep -vwE '2.0.0|2.0.1|2.0.2|2.0.3')
 
-    #helm init --client-only
+    helm init --client-only
     helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
     helm repo update
 
-    #oss_version=$(ossutil ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
-    oss_version=$(ossutil ls oss://$oss_bucket_name/rancher-charts/ | awk -F "\/" '{print $5}' | grep -v "^$" | awk -F "-" '{print $2}' | awk -F "." '{print $1"."$2"."$3}' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+    #oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+    oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/rancher-charts/ | awk -F "\/" '{print $5}' | grep -v "^$" | awk -F "-" '{print $2}' | awk -F "." '{print $1"."$2"."$3}' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
 
     compare_version "$version" "$oss_version"
 
@@ -162,7 +163,7 @@ k3s_download()
 
     version=$( curl -LSs https://update.k3s.io/v1-release/channels | jq -r ".data[].latest"  | grep v  | grep -v "rc" | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
 
-    oss_version=$(ossutil ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+    oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
 
     #version_urlencode=""
     for ver in $version
@@ -207,7 +208,7 @@ kubectl_download()
 
     version=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/git/refs/tags | jq -r .[].ref | awk -F/ '{print $3}' | grep v | awk -Fv '{print $2}' | grep -v [a-z] | awk -F"." '{arr[$1"."$2]=$3}END{for(var in arr){if(arr[var]==""){print var}else{print var"."arr[var]}}}'|sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3 | grep -v ^0. | grep -vw ^1.[0-5] )
 
-    oss_version=$(ossutil ls oss://$oss_bucket_name/kubectl/ -d | awk -F "\/" '{print $5}'  | grep v | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+    oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/kubectl/ -d | awk -F "\/" '{print $5}'  | grep v | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
 
     compare_version "$version" "$oss_version"
 
@@ -227,7 +228,7 @@ compose_download()
 
     version=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/git/refs/tags | jq -r .[].ref | awk -F/ '{print $3}' | grep -v [a-z] | awk -F"." '{arr[$1"."$2]=$3}END{for(var in arr){if(arr[var]==""){print var}else{print var"."arr[var]}}}' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3 | grep -v ^0. | grep -vw ^1.[0-9] )
 
-    oss_version=$(ossutil ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $1 }'`-`echo $repo | awk -F/ '{ print $2 }'` |  awk -F "\/" '{print $5}' | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+    oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $1 }'`-`echo $repo | awk -F/ '{ print $2 }'` |  awk -F "\/" '{print $5}' | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
 
     compare_version "$version" "$oss_version"
 
@@ -250,7 +251,7 @@ harbor_download()
 
     version=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/git/refs/tags | jq -r .[].ref | grep v | awk -F/ '{print $3}' |  awk -Fv '{print $2}' | grep -v [a-z] | awk -F"." '{arr[$1"."$2]=$3}END{for(var in arr){if(arr[var]==""){print var}else{print var"."arr[var]}}}' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3 | grep -vw ^1.[0-5] )
 
-    oss_version=$(ossutil ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+    oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
 
     compare_version "$version" "$oss_version"
 
