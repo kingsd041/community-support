@@ -162,33 +162,36 @@ k3s_download()
     repo=rancher/k3s
 
     version=$( curl -LSs https://update.k3s.io/v1-release/channels | jq -r ".data[].latest"  | grep v  | grep -v "rc" | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+    
+    version=$( echo ${version} | sed 's/+/-/g' )
 
     oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
 
     #version_urlencode=""
-    for ver in $version
-    do
-	ver1=`urlencode "$ver"`
-        version_urlencode="$version_urlencode $ver1"
-    done
+    # for ver in $version
+    # do
+	# ver1=`urlencode "$ver"`
+    #     version_urlencode="$version_urlencode $ver1"
+    # done
 
-    for oss_ver in $oss_version
-    do
-	oss_ver1=`urlencode "$oss_ver"`
-        oss_version_urlencode="$oss_version_urlencode $oss_ver1"
-    done
-    compare_version "$version_urlencode" "$oss_version_urlencode"
+    # for oss_ver in $oss_version
+    # do
+	# oss_ver1=`urlencode "$oss_ver"`
+    #     oss_version_urlencode="$oss_version_urlencode $oss_ver1"
+    # done
+    compare_version "$version" "$oss_version"
 
-    new_version=`urldecode "$new_version"`
+    # new_version=`urldecode "$new_version"`
 
     for ver in $new_version;
     do
+        init_var=$( echo ${ver} | sed 's/-/+/g' )
         mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/$ver
-        file_name=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/releases/tags/$ver | jq -r .assets[].browser_download_url | awk -F "\/" '{print $NF}'  )
+        file_name=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/releases/tags/$init_var | jq -r .assets[].browser_download_url | awk -F "\/" '{print $NF}'  )
 
         for file in $file_name;
         do
-   	      curl -LSs https://github.com/$repo/releases/download/$ver/$file -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/$ver/$file
+   	      curl -LSs https://github.com/$repo/releases/download/$init_var/$file -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/$ver/$file
         done
     done
 }

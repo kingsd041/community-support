@@ -7,7 +7,7 @@
       keyExcludePatterns: [ /^index\.html$/,/^rancher\.svg$/ ,/^favicon\.ico$/ ],
       pageSize: 50,
       title: 'Rancher Releases Mirror',
-      subtitle: 'Supported by Rancher China Team',
+      subtitle: '由Rancher团队提供下载资源',
       logo: 'rancher.svg',
       favicon: 'favicon.ico'
     }
@@ -308,7 +308,7 @@
           try {
             let bucketListApiUrl = `${this.config.bucketUrl}?list-type=2`;
             bucketListApiUrl += `&delimiter=/`;
-            bucketListApiUrl += `&prefix=${this.pathPrefix}`;
+            bucketListApiUrl += `&prefix=${this.pathPrefix.split('/').map(k => encodeURIComponent(k)).join('/')}`;
             
             if(this.config.pageSize){
               bucketListApiUrl += `&max-keys=${this.config.pageSize}`;
@@ -365,7 +365,7 @@
                   prefix: `${this.pathPrefix}${content.key}`
                 });
               } else { 
-                let url = `${this.config.bucketUrl}/${content.key}`;
+                let url = `${this.config.bucketUrl}/${content.key.split('/').map(k => encodeURIComponent(k)).join('/')}`;
                 let installUrl;
                 
                 let isIOS = /iPad|iPhone|iPod/.test(navigator.platform) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -413,7 +413,7 @@
       async mounted() {
         window.onhashchange = () => {
           let locationHash = window.location.hash.replace(/^#/, '');
-          this.pathPrefix = locationHash.replace(/^\//, '').split('/').map(k => encodeURIComponent(k)).join('/');
+          this.pathPrefix = locationHash.replace(/^\//, '');
         };
         window.onhashchange();
 
