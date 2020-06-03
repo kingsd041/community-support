@@ -265,6 +265,30 @@ harbor_download()
     done
 }
 
+## Helm
+helm_download()
+{
+    repo=helm/helm
+
+    version=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/git/refs/tags | jq -r .[].ref | awk -F/ '{print $3}' | grep v | awk -Fv '{print $2}' | grep -v [a-z] | awk -F"." '{arr[$1"."$2]=$3}END{for(var in arr){if(arr[var]==""){print var}else{print var"."arr[var]}}}' | grep -vw ^[1] | sort -u -t "." -k1nr,1 -k2nr,2 -k3nr,3 | awk -F '.' '!a[$1]++{print}' )
+
+    oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+
+    compare_version "$version" "$oss_version"
+
+    for ver in $new_version;
+    do
+	mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver
+        curl -LSs https://storage.googleapis.com/kubernetes-helm/helm-v$ver-darwin-amd64.tar.gz -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/helm-v$ver-darwin-amd64.tar.gz
+        curl -LSs https://storage.googleapis.com/kubernetes-helm/helm-v$ver-linux-amd64.tar.gz -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/helm-v$ver-linux-amd64.tar.gz
+#        curl -LSs https://storage.googleapis.com/kubernetes-helm/helm-v$ver-linux-arm.tar.gz -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/helm-v$ver-linux-arm.tar.gz
+        curl -LSs https://storage.googleapis.com/kubernetes-helm/helm-v$ver-linux-arm64.tar.gz -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/helm-v$ver-linux-arm64.tar.gz
+#        curl -LSs https://storage.googleapis.com/kubernetes-helm/helm-v$ver-linux-386.tar.gz -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/helm-v$ver-linux-386.tar.gz
+#        curl -LSs https://storage.googleapis.com/kubernetes-helm/helm-v$ver-linux-ppc64le.tar.gz -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/helm-v$ver-linux-ppc64le.tar.gz
+#        curl -LSs https://storage.googleapis.com/kubernetes-helm/helm-v$ver-linux-s390x.tar.gz -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/helm-v$ver-linux-s390x.tar.gz
+        curl -LSs https://storage.googleapis.com/kubernetes-helm/helm-v$ver-windows-amd64.zip -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/helm-v$ver-windows-amd64.zip
+    done
+}
 
 rke_download
 cli_download
@@ -275,3 +299,4 @@ k3s_install
 kubectl_download
 compose_download
 harbor_download
+helm_download
