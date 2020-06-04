@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+#set -x
 token=$1
 
 download_dir="/opt/rancher-mirror"
@@ -103,33 +103,25 @@ rancher_assets_download()
 ### rancher charts
 rancher_charts_download()
 {
-    cd /root
-    curl -LSs -O https://get.helm.sh/helm-`curl https://api.github.com/repos/helm/helm/releases/latest | jq .tag_name -r`-linux-amd64.tar.gz
-    tar -zxf helm*.tar.gz
-    cd linux-amd64
-    cp helm /usr/local/bin/helm
-    chmod +x /usr/local/bin/helm
-    cd /root
+    chart_url="https://releases.rancher.com/server-charts"
 
-    repo=rancher/rancher
-    version=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/git/refs/tags | jq -r .[].ref | awk -F/ '{print $3}' | grep v | awk -Fv '{print $2}' | grep -v [a-z] | sort -u -t "." -k1nr,1 -k2nr,2 -k3nr,3 | grep -v ^0. | grep -v ^1. | grep -vwE '2.0.0|2.0.1|2.0.2|2.0.3')
+    releases_version="stable latest alpha"
 
-    helm init --client-only
-    helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
-    helm repo update
-
-    #oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
-    oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/rancher-charts/ | awk -F "\/" '{print $5}' | grep -v "^$" | awk -F "-" '{print $2}' | awk -F "." '{print $1"."$2"."$3}' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
-
-    compare_version "$version" "$oss_version"
-
-    for ver in $new_version;
+    for r_ver in $releases_version
     do
-        mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`-charts/
-        helm fetch rancher-latest/rancher --version v$ver -d $download_dir/`echo $repo | awk -F/ '{ print $2 }'`-charts/
-    done
+        version=$( curl -LSs  $chart_url/$r_ver/index.yaml | grep version | awk '{print $2}'  )
+	oss_version=$( /usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/server-charts/$r_ver | awk -F "\/" '{print $6}' | grep -v "^$" | awk -F "." '{print $1"."$2"."$3}' | grep [0-9] | sort -r  -u )
 
-    rm -rf /root/helm*.tar.gz /root/linux-amd64
+        compare_version "$version" "$oss_version"
+
+        mkdir -p $download_dir/server-charts/$r_ver
+
+        for ver in $new_version;
+        do
+            curl -LSs $chart_url/$r_ver/rancher-$ver.tgz -o $download_dir/server-charts/$r_ver/rancher-$ver.tgz
+        done
+        curl -LSs $chart_url/$r_ver/index.yaml -o $download_dir/server-charts/$r_ver/index.yaml
+    done
 }
 
 ## URL encode
@@ -162,7 +154,7 @@ k3s_download()
     repo=rancher/k3s
 
     version=$( curl -LSs https://update.k3s.io/v1-release/channels | jq -r ".data[].latest"  | grep v  | grep -v "rc" | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
-    
+
     version=$( echo ${version} | sed 's/+/-/g' )
 
     oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
@@ -195,7 +187,6 @@ k3s_download()
         done
     done
 }
-
 
 k3s_install()
 {
