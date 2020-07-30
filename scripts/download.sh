@@ -121,6 +121,10 @@ rancher_charts_download()
             curl -LSs $chart_url/$r_ver/rancher-$ver.tgz -o $download_dir/server-charts/$r_ver/rancher-$ver.tgz
         done
         curl -LSs $chart_url/$r_ver/index.yaml -o $download_dir/server-charts/$r_ver/index.yaml
+        # 由于compare_version的bug(rancher-2.4.5-rc1 包含 rancher-2.4.5，导致在latest里没有rancher-2.4.5的chart), 所以临时处理下，将stable里的chart复制到latest
+        if [ $r_ver = 'latest' ]; then
+            awk 'BEGIN { cmd="cp -i /opt/rancher-mirror/server-charts/stable/rancher-* /opt/rancher-mirror/server-charts/latest/"; print "n" |cmd; }'
+        fi
     done
 }
 
