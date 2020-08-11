@@ -4,7 +4,7 @@
 <head>
   <script>
     const config = {
-      keyExcludePatterns: [ /^index\.html$/,/^rancher\.svg$/ ,/^favicon\.ico$/,/^files$/ ],
+      keyExcludePatterns: [ /^index\.html$/,/^rancher\.svg$/ ,/^favicon\.ico$/,/^files/, ],
       pageSize: 50,
       title: 'Rancher Releases Mirror',
       subtitle: '由Rancher团队提供下载资源',
@@ -344,7 +344,7 @@
           }));
 
           this.pathContentTableData = [];
-          commonPrefixes
+          commonPrefixes.filter(item => ['files/','webfonts/'].indexOf(item.prefix) === -1)
             .forEach(prefix => {
               this.pathContentTableData.push({
                 type: 'prefix',

@@ -121,8 +121,9 @@ rancher_charts_download()
             curl -LSs $chart_url/$r_ver/rancher-$ver.tgz -o $download_dir/server-charts/$r_ver/rancher-$ver.tgz
         done
         curl -LSs $chart_url/$r_ver/index.yaml -o $download_dir/server-charts/$r_ver/index.yaml
-        # 由于compare_version的bug(rancher-2.4.5-rc1 包含 rancher-2.4.5，导致在latest里没有rancher-2.4.5的chart), 所以临时处理下，将stable里的chart复制到latest
-        if [ $r_ver = 'latest' ]; then
+
+	# 由于compare_version的bug(rancher-2.4.5-rc1 包含 rancher-2.4.5，导致在latest里没有rancher-2.4.5的chart), 所以临时处理下，将stable里的chart复制到latest
+	if [ $r_ver = 'latest' ]; then
             awk 'BEGIN { cmd="cp -i /opt/rancher-mirror/server-charts/stable/rancher-* /opt/rancher-mirror/server-charts/latest/"; print "n" |cmd; }'
         fi
     done
@@ -310,6 +311,54 @@ k3d_download()
     done
 }
 
+## Rancher Octopus
+
+octopus_download()
+{
+    repo=cnrancher/octopus
+    adaptor_files="modbus opcua mqtt ble dummy"
+
+    # Download YAML for the Master branch
+
+    git clone https://github.com/cnrancher/octopus.git /tmp/octopus
+
+    cp -rf /tmp/octopus/deploy/e2e/*.yaml /opt/rancher-mirror/octopus/master/deploy/e2e/
+
+    adaptors_dir=`ls /tmp/octopus/adaptors`
+
+    for adaptor_dir in $adaptors_dir
+    do
+    	cp -rf /tmp/octopus/adaptors/$adaptor_dir/deploy/e2e/*.yaml /opt/rancher-mirror/octopus/master/adaptors/$adaptor_dir/deploy/e2e/
+    done
+
+    rm -rf /tmp/octopus
+
+    curl -LSs --create-dirs https://raw.githubusercontent.com/cnrancher/octopus-api-server/master/deploy/e2e/all_in_one.yaml -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/api-server/master/deploy/e2e/all_in_one.yaml
+
+    # Download YAML from Release
+    version=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/git/refs/tags | jq -r .[].ref | awk -F/ '{print $3}' | grep v | awk -Fv '{print $2}' | grep -v [a-z] | awk -F"." '{arr[$1"."$2]=$3}END{for(var in arr){if(arr[var]==""){print var}else{print var"."arr[var]}}}' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3 | grep -vw ^0.[0-9] )
+    echo "### version=$version"
+    oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+    echo "### oss_vrsion=$oss_vrsion"
+    compare_version "$version" "$oss_version"
+
+    echo "### new_version=$new_version"
+
+    for ver in $new_version;
+    do
+
+        mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver
+
+        file_name=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/releases/tags/v$ver | jq -r .assets[].browser_download_url | awk -F"/v$ver/" '{print $2}' )
+
+        for file in $file_name;
+        do
+            curl -LSs https://github.com/$repo/releases/download/v$ver/$file -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/$file
+        done
+    done
+
+}
+
 rke_download
 cli_download
 rancher_assets_download
@@ -321,3 +370,4 @@ compose_download
 harbor_download
 helm_download
 k3d_download
+octopus_download
