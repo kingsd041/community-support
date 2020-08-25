@@ -3,7 +3,7 @@ touch rancher-images-all.txt
 touch /root/update.txt
 echo "$(date +%Y-%m-%d:%H)" >> /root/update.txt
 
-token=xiaoluhong:8f616d05874ea1a272911db88aa1f82f1ff86b86
+token=$1
 TOKEN=8f616d05874ea1a272911db88aa1f82f1ff86b86
 
 RANCHER_VERSION=$( curl -u $token -s https://api.github.com/repos/rancher/rancher/git/refs/tags | jq -r .[].ref | awk -F/ '{print $3}' | grep v | awk -Fv '{print $2}' | grep -v [a-z] | sort -u -t "." -k1nr,1 -k2nr,2 -k3nr,3 | grep -v ^0. | grep -v ^1. )
