@@ -162,7 +162,7 @@ k3s_download()
 
     version=$( echo ${version} | sed 's/+/-/g' )
 
-    oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+    oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sort -r  -u )
 
     #version_urlencode=""
     # for ver in $version
@@ -258,6 +258,7 @@ harbor_download()
     do
         mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver
         curl -LSs https://storage.googleapis.com/harbor-releases/release-`echo $ver | awk -F. '{ print $1"."$2 }'`.0/harbor-online-installer-v$ver.tgz -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/harbor-online-installer-v$ver.tgz
+#        curl -LSs https://storage.googleapis.com/harbor-releases/release-`echo $ver | awk -F. '{ print $1"."$2 }'`.0/harbor-offline-installer-v$ver.tgz -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/harbor-online-installer-v$ver.tgz
     done
 }
 
