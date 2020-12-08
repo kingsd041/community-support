@@ -110,7 +110,7 @@ rancher_charts_download()
     for r_ver in $releases_version
     do
         version=$( curl -LSs  $chart_url/$r_ver/index.yaml | grep version | awk '{print $2}'  )
-	oss_version=$( /usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/server-charts/$r_ver | awk -F "\/" '{print $6}' | grep -v "^$" | awk -F "." '{print $1"."$2"."$3}' | grep [0-9] | sort -r  -u )
+        oss_version=$( /usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/server-charts/$r_ver | awk -F "\/" '{print $6}' | grep -v "^$" | awk -F "." '{print $1"."$2"."$3}' | grep [0-9] | sort -r  -u )
 
         compare_version "$version" "$oss_version"
 
@@ -122,8 +122,8 @@ rancher_charts_download()
         done
         curl -LSs $chart_url/$r_ver/index.yaml -o $download_dir/server-charts/$r_ver/index.yaml
 
-	# 由于compare_version的bug(rancher-2.4.5-rc1 包含 rancher-2.4.5，导致在latest里没有rancher-2.4.5的chart), 所以临时处理下，将stable里的chart复制到latest
-	if [ $r_ver = 'latest' ]; then
+    # 由于compare_version的bug(rancher-2.4.5-rc1 包含 rancher-2.4.5，导致在latest里没有rancher-2.4.5的chart), 所以临时处理下，将stable里的chart复制到latest
+    if [ $r_ver = 'latest' ]; then
             awk 'BEGIN { cmd="cp -i /opt/rancher-mirror/server-charts/stable/rancher-* /opt/rancher-mirror/server-charts/latest/"; print "n" |cmd; }'
         fi
     done
@@ -156,9 +156,10 @@ echo -e "${u//%/\\x}"
 
 k3s_download()
 {
-    repo=rancher/k3s
+    repo=k3s-io/k3s
 
-    version=$( curl -LSs https://update.k3s.io/v1-release/channels | jq -r ".data[].latest"  | grep v  | grep -v "rc" | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+    #version=$( curl -LSs https://update.k3s.io/v1-release/channels | jq -r ".data[].latest"  | grep v  | grep -v "rc" | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+    version=$( curl -LSs https://update.k3s.io/v1-release/channels | jq -r ".data[].latest"  | grep v  | grep -v "rc" | sort -r  -u )
 
     version=$( echo ${version} | sed 's/+/-/g' )
 
@@ -167,13 +168,13 @@ k3s_download()
     #version_urlencode=""
     # for ver in $version
     # do
-	# ver1=`urlencode "$ver"`
+    # ver1=`urlencode "$ver"`
     #     version_urlencode="$version_urlencode $ver1"
     # done
 
     # for oss_ver in $oss_version
     # do
-	# oss_ver1=`urlencode "$oss_ver"`
+    # oss_ver1=`urlencode "$oss_ver"`
     #     oss_version_urlencode="$oss_version_urlencode $oss_ver1"
     # done
     compare_version "$version" "$oss_version"
@@ -188,7 +189,7 @@ k3s_download()
 
         for file in $file_name;
         do
-   	      curl -LSs https://github.com/$repo/releases/download/$init_var/$file -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/$ver/$file
+          curl -LSs https://github.com/$repo/releases/download/$init_var/$file -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/$ver/$file
         done
     done
 }
@@ -275,7 +276,7 @@ helm_download()
 
     for ver in $new_version;
     do
-	mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver
+    mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver
         curl -LSs https://get.helm.sh/helm-v$ver-darwin-amd64.tar.gz -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/helm-v$ver-darwin-amd64.tar.gz
         curl -LSs https://get.helm.sh/helm-v$ver-linux-amd64.tar.gz -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/helm-v$ver-linux-amd64.tar.gz
 #        curl -LSs https://get.helm.sh/helm-v$ver-linux-arm.tar.gz -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/helm-v$ver-linux-arm.tar.gz
@@ -329,7 +330,7 @@ octopus_download()
 
     for adaptor_dir in $adaptors_dir
     do
-    	cp -rf /tmp/octopus/adaptors/$adaptor_dir/deploy/e2e/*.yaml /opt/rancher-mirror/octopus/master/adaptors/$adaptor_dir/deploy/e2e/
+        cp -rf /tmp/octopus/adaptors/$adaptor_dir/deploy/e2e/*.yaml /opt/rancher-mirror/octopus/master/adaptors/$adaptor_dir/deploy/e2e/
     done
 
     rm -rf /tmp/octopus
