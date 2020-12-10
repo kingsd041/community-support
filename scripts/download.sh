@@ -357,12 +357,27 @@ octopus_download()
 
 }
 
+k3s_channels()
+{
+    k3s_channel_dir=$download_dir/k3s/channels/
+    mkdir -p $k3s_channel_dir
+    INSTALL_K3S_CHANNEL_URL=${INSTALL_K3S_CHANNEL_URL:-'https://update.k3s.io/v1-release/channels'}
+    INSTALL_K3S_CHANNELS="stable latest testing"
+    for INSTALL_K3S_CHANNEL in $INSTALL_K3S_CHANNELS;
+    do
+        version_url="${INSTALL_K3S_CHANNEL_URL}/${INSTALL_K3S_CHANNEL}"
+        VERSION_K3S=$(curl -w '%{url_effective}' -L -s -S ${version_url} -o /dev/null | sed -e 's|.*/||')
+        echo $VERSION_K3S > $k3s_channel_dir/$INSTALL_K3S_CHANNEL
+    done
+}
+
 rke_download
 cli_download
 rancher_assets_download
 rancher_charts_download
 k3s_download
 k3s_install
+k3s_channels
 kubectl_download
 compose_download
 harbor_download
