@@ -1,10 +1,20 @@
 #!/bin/bash
-#set -x
+# set -x
+set -e
+
+export https_proxy=http://127.0.0.1:1087 http_proxy=http://127.0.0.1:1087 all_proxy=socks5://127.0.0.1:1087
+
 token=$1
 
 download_dir="/opt/rancher-mirror"
 
 oss_bucket_name="rancher-mirror"
+
+# 测试oss是否可用
+oss_test=`/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name`
+if [[ $oss_test =~ 'Error' ]]; then
+    exit 1
+fi
 
 # Used to compare the release version with the aliyun oss version
 compare_version()
@@ -20,7 +30,12 @@ compare_version()
             echo "`date '+%F %T %A'`:  `echo $repo | awk -F/ '{ print $2 }'` v$v already exists in aliyun oss"
         fi
     done
-    [[ -n $new_version ]] && echo "`date '+%F %T %A'`:  Downloading `echo $repo | awk -F/ '{ print $2 }'` $new_version ..."
+    #[[ -n $new_version ]] && echo "`date '+%F %T %A'`:  Downloading `echo $repo | awk -F/ '{ print $2 }'` $new_version ..."
+    if [[ -n $new_version ]]; then
+        echo "`date '+%F %T %A'`:  Downloading `echo $repo | awk -F/ '{ print $2 }'` $new_version ..."
+    else
+        echo "`echo $repo | awk -F/ '{ print $2 }'` does not have the latest version to download..."
+    fi
 }
 
 
