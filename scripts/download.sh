@@ -1,5 +1,5 @@
 #!/bin/bash
-# set -x
+set -x
 set -e
 
 export https_proxy=http://127.0.0.1:1087 http_proxy=http://127.0.0.1:1087 all_proxy=socks5://127.0.0.1:1087
@@ -336,19 +336,20 @@ octopus_download()
     adaptor_files="modbus opcua mqtt ble dummy"
 
     # Download YAML for the Master branch
-
+    rm -rf /tmp/octopus
     git clone https://github.com/cnrancher/octopus.git /tmp/octopus
 
-    cp -rf /tmp/octopus/deploy/e2e/*.yaml /opt/rancher-mirror/octopus/master/deploy/e2e/
+    mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/master/deploy/e2e/
+
+    cp -rf /tmp/octopus/deploy/e2e/*.yaml $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/master/deploy/e2e/
 
     adaptors_dir=`ls /tmp/octopus/adaptors`
 
     for adaptor_dir in $adaptors_dir
     do
-        cp -rf /tmp/octopus/adaptors/$adaptor_dir/deploy/e2e/*.yaml /opt/rancher-mirror/octopus/master/adaptors/$adaptor_dir/deploy/e2e/
+        mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/master/adaptors/$adaptor_dir/deploy/e2e/
+        cp -rf /tmp/octopus/adaptors/$adaptor_dir/deploy/e2e/*.yaml $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/master/adaptors/$adaptor_dir/deploy/e2e/
     done
-
-    rm -rf /tmp/octopus
 
     curl -LSs --create-dirs https://raw.githubusercontent.com/cnrancher/octopus-api-server/master/deploy/e2e/all_in_one.yaml -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/api-server/master/deploy/e2e/all_in_one.yaml
 
@@ -412,16 +413,16 @@ harvester_download()
 }
 
 rke_download
-cli_download
+#cli_download
 rancher_assets_download
 rancher_charts_download
 k3s_download
 k3s_install
 k3s_channels
-kubectl_download
-compose_download
-harbor_download
-helm_download
-k3d_download
-octopus_download
-harvester_download
+#kubectl_download
+#compose_download
+#harbor_download
+#helm_download
+#k3d_download
+#octopus_download
+#harvester_download
