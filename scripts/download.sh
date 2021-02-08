@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+# set -x
 set -e
 
 export https_proxy=http://127.0.0.1:1087 http_proxy=http://127.0.0.1:1087 all_proxy=socks5://127.0.0.1:1087
@@ -34,7 +34,7 @@ compare_version()
     if [[ -n $new_version ]]; then
         echo "`date '+%F %T %A'`:  Downloading `echo $repo | awk -F/ '{ print $2 }'` $new_version ..."
     else
-        echo "`echo $repo | awk -F/ '{ print $2 }'` does not have the latest version to download..."
+        echo "`date '+%F %T %A'`:  `echo $repo | awk -F/ '{ print $2 }'` does not have the latest version to download..."
     fi
 }
 
@@ -412,17 +412,24 @@ harvester_download()
     done
 }
 
+output_download_result()
+{
+    echo "`date '+%F %T %A'`:  Download the required resources successfully !!!"
+}
+
 rke_download
-#cli_download
+cli_download
 rancher_assets_download
 rancher_charts_download
 k3s_download
 k3s_install
 k3s_channels
-#kubectl_download
-#compose_download
-#harbor_download
-#helm_download
-#k3d_download
-#octopus_download
-#harvester_download
+kubectl_download
+compose_download
+harbor_download
+helm_download
+k3d_download
+octopus_download
+harvester_download
+
+output_download_result
