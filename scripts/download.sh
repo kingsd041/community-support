@@ -412,6 +412,33 @@ harvester_download()
     done
 }
 
+
+# autok3s
+autok3s_download()
+{
+    repo=cnrancher/autok3s
+
+    version=$( curl -LSs -u $token -s https://api.github.com/repos/$repo/git/refs/tags | jq -r .[].ref | awk -F/ '{print $3}' | grep v | awk -Fv '{print $2}' | grep -v [a-z] | awk -F"." '{arr[$1"."$2]=$3}END{for(var in arr){if(arr[var]==""){print var}else{print var"."arr[var]}}}'  | sort -u -t "." -k1nr,1 -k2nr,2 -k3nr,3 | awk -F '.' '!a[$1]++{print}' )
+
+    oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/ -d | awk -F "\/" '{print $5}'  | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+
+    compare_version "$version" "$oss_version"
+
+    for ver in $new_version;
+    do
+
+        mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver
+
+        file_name=$(curl -LSs -u $token -s https://api.github.com/repos/$repo/releases/tags/v$ver | jq -r .assets[].browser_download_url | awk -F/v$ver/ '{print $2}'  )
+
+        for file in $file_name;
+        do
+            curl -LSs https://github.com/$repo/releases/download/v$ver/$file -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/$file
+        done
+    done
+}
+
+
 output_download_result()
 {
     echo "`date '+%F %T %A'`:  Download the required resources successfully !!!"
@@ -431,5 +458,6 @@ helm_download
 k3d_download
 octopus_download
 harvester_download
+autok3s_download
 
 output_download_result
