@@ -438,11 +438,6 @@ autok3s_download()
     done
 }
 
-clean_resources()
-{
-    rm -rf $download_dir/*
-}
-
 output_download_result()
 {
     echo "`date '+%F %T %A'`:  Download the required resources successfully !!!"
@@ -464,5 +459,4 @@ octopus_download
 harvester_download
 autok3s_download
 
-clean_resources
 output_download_result
