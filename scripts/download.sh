@@ -473,5 +473,6 @@ k3d_download
 octopus_download
 harvester_download
 autok3s_download
+autok3s_channels
 
 output_download_result
