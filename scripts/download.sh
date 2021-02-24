@@ -2,7 +2,7 @@
 # set -x
 set -e
 
-export https_proxy=http://127.0.0.1:1087 http_proxy=http://127.0.0.1:1087 all_proxy=socks5://127.0.0.1:1087
+# export https_proxy=http://127.0.0.1:1087 http_proxy=http://127.0.0.1:1087 all_proxy=socks5://127.0.0.1:1087
 
 token=$1
 
@@ -438,6 +438,10 @@ autok3s_download()
     done
 }
 
+clean_resources()
+{
+    rm -rf $download_dir/*
+}
 
 output_download_result()
 {
@@ -460,4 +464,5 @@ octopus_download
 harvester_download
 autok3s_download
 
+clean_resources
 output_download_result
