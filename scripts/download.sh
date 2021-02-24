@@ -412,7 +412,6 @@ harvester_download()
     done
 }
 
-
 # autok3s
 autok3s_download()
 {
@@ -437,6 +436,22 @@ autok3s_download()
         done
     done
 }
+
+# autok3s channels
+autok3s_channels()
+{
+    autok3s_channel_dir=$download_dir/autok3s/channels
+    mkdir -p $autok3s_channel_dir
+    INSTALL_AUTOK3S_CHANNEL_URL=${INSTALL_AUTOK3S_CHANNEL_URL:-'https://github.com/cnrancher/autok3s/releases'}
+    INSTALL_AUTOK3S_CHANNELS="latest"
+    for INSTALL_AUTOK3S_CHANNEL in $INSTALL_AUTOK3S_CHANNELS;
+    do
+        version_url="${INSTALL_AUTOK3S_CHANNEL_URL}/${INSTALL_AUTOK3S_CHANNEL}"
+        VERSION_AUTOK3S=$(curl -w '%{url_effective}' -L -s -S ${version_url} -o /dev/null | sed -e 's|.*/||')
+        echo $VERSION_AUTOK3S > $autok3s_channel_dir/$INSTALL_AUTOK3S_CHANNEL
+    done
+}
+
 
 output_download_result()
 {
