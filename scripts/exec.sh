@@ -7,6 +7,9 @@ log_file=download-`date +'%Y-%m-%d-%H'`.log
 # 从github下载rancher资源
 /opt/community-support/scripts/download.sh $1 > /opt/logs/download/download-`date +'%Y-%m-%d-%H'`.log
 
+# 磁盘信息
+echo -e "\nDISK:\n`df -h | grep -E "Filesystem|xvda1"`" >> /opt/logs/download/download-`date +'%Y-%m-%d-%H'`.log
+
 
 # 同步资源到oss
 cat $log_dir/$log_file | grep  "$keyword"
