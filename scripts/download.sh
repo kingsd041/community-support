@@ -466,7 +466,7 @@ k3s_download
 k3s_install
 k3s_channels
 kubectl_download
-compose_download
+#compose_download
 harbor_download
 helm_download
 k3d_download
