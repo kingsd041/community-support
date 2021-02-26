@@ -5,7 +5,7 @@ log_dir=/opt/logs/download
 log_file=download-`date +'%Y-%m-%d-%H'`.log
 
 # 从github下载rancher资源
-/opt/community-support/scripts/download.sh kingsd041:455e84310d95e46ad52b5713623f1a9b5de5df62 > /opt/logs/download/download-`date +'%Y-%m-%d-%H'`.log
+/opt/community-support/scripts/download.sh $1 > /opt/logs/download/download-`date +'%Y-%m-%d-%H'`.log
 
 
 # 同步资源到oss
