@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en" style="overflow-y: auto;">
 
 <head>
@@ -12,22 +12,22 @@
       favicon: 'favicon.ico'
     }
   </script>
-
+  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link id="favicon" rel="shortcut icon"/>
   <script src="files/vue.js"></script><script>Vue.config.productionTip = false;</script>
   <script src="files/buefy.min.js"></script>
-  <link rel="stylesheet" href="files/add.css">
   <link rel="stylesheet" href="files/buefy.min.css">
   <link rel="stylesheet" href="files/all.css">
   <link rel="stylesheet" href="files/materialdesignicons.min.css">
   <script src="files/moment.min.js"></script>
-  <script data-ad-client="ca-pub-4244806813321801" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 </head>
 
 <body class="notification" style="width: 100vw; min-height: 100vh; overflow-y: auto;">
+  
   <div id="app">
+  
     <div class="container">
       <div class="level">
         <div class="level-left">
@@ -39,22 +39,14 @@
             <h2 class="subtitle">{{config.subtitle}}</h2>
           </div>
         </div>
-
-        <div class="level-right">
-          <ins class="adsbygoogle"
-               style="display:inline-block;width:728px;height:200px"
-               data-ad-client="ca-pub-4244806813321801"
-               data-ad-slot="9049703323">
-          </ins>
-        </div>
       </div>
-
+      
       <div class="container is-clearfix">
         <div class="buttons is-pulled-left">
-          <b-button v-for="(breadcrump, index) in pathBreadcrumps" v-bind:key="breadcrump.url"
+          <b-button v-for="(breadcrump, index) in pathBreadcrumps" v-bind:key="breadcrump.url" 
             type="is-info" rounded
-            tag="a"
-            :href="breadcrump.url"
+            tag="a" 
+            :href="breadcrump.url" 
             icon-pack="fas"
             :icon-left="index == 0 ? 'folder' : ''"
             target=""
@@ -85,50 +77,50 @@
         </div>
       </div>
 
-      <b-table
+      <b-table 
         v-if="!isMobileBreakoint"
-        :data="pathContentTableData"
+        :data="pathContentTableData" 
         >
         <template slot-scope="props">
-          <b-table-column
+          <b-table-column 
             field="name"
             label="Name"
             sortable :custom-sort="sortTableData('name')"
             >
-            <b-icon
+            <b-icon 
               class="row-title-icon"
-              pack="far"
+              pack="far" 
               :icon="props.row.type === 'prefix' ? 'folder' : 'file-alt'"
               >
             </b-icon>
-            <b-button
-              type="is-info is-text" inverted rounded
-              tag="a"
-              :href="props.row.type === 'content' ? props.row.url : `#${props.row.prefix}`"
+            <b-button 
+              type="is-info is-text" inverted rounded 
+              tag="a" 
+              :href="props.row.type === 'content' ? props.row.url : `#${props.row.prefix}`" 
               style="text-align: left;"
               >
               {{ props.row.name }}
             </b-button>
-            <b-button
+            <b-button 
               v-if="props.row.installUrl"
-              type="is-info" rounded
-              tag="a"
-              :href="props.row.installUrl"
+              type="is-info" rounded 
+              tag="a" 
+              :href="props.row.installUrl"  
               style="margin-left: 0.5rem; height: 1.7rem; padding: 12px;"
               >
               Install
             </b-button>
           </b-table-column>
           <b-table-column
-            field="size" numeric
+            field="size" numeric 
             label="Size"
             sortable :custom-sort="sortTableData('size')"
             centered width="128"
             >
             {{ props.row.size | formatBytes}}
           </b-table-column>
-          <b-table-column
-              field="dateModified"
+          <b-table-column 
+              field="dateModified" 
               label="Date Modified"
               sortable :custom-sort="sortTableData('dateModified')"
               centered width="256"
@@ -145,8 +137,8 @@
           </b-table-column>
         </template>
       </b-table>
-
-      <b-table
+      
+      <b-table 
         v-if="isMobileBreakoint"
         :data="pathContentTableData"
         >
@@ -160,7 +152,7 @@
               :icon="props.row.type === 'prefix' ? 'folder' : 'file-alt'"
               >
             </b-icon>
-
+            
             <div class="mobile-row-title">
               <b-button 
                 type="is-info is-text" inverted rounded 
@@ -180,7 +172,7 @@
                 Install
               </b-button>
             </div>
-
+            
             <div 
               v-if="props.row.size || props.row.dateModified"
               class="mobile-row-subtitle"
@@ -221,7 +213,7 @@
           </b-table-column>
         </template>
       </b-table>
-
+      
       <div class="container is-clearfix" style="margin-top: 1rem;">
         <div v-show="nextContinuationToken || previousContinuationTokens.length > 0"
           class="buttons is-pulled-right">
@@ -244,9 +236,9 @@
         </div>
       </div>
     </div>
-    <div class="footer-bucket-url">Bucket: {{ config.bucketUrl }}</div>
+    <div class="footer-bucket-url">Bucket: {{ config.bucketUrl }}</div>    
   </div>
-
+  
   <script>
     
     if(!config.bucketUrl){
@@ -473,7 +465,7 @@
         return div.innerHTML;
     }
   </script>
-
+  
   <style>
     .table {
       background-color: transparent;
@@ -535,9 +527,7 @@
       color: darkgray;
     }
   </style>
-  <script>
-       (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
+  
 </body>
 
 </html>
