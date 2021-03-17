@@ -477,6 +477,19 @@ rke2_download()
     done
 }
 
+rke2_channels()
+{
+    rke2_channel_dir=$download_dir/rke2/channels
+    mkdir -p $rke2_channel_dir
+    INSTALL_RKE2_CHANNEL_URL=${INSTALL_RKE2_CHANNEL_URL:-'https://update.rke2.io/v1-release/channels'}
+    INSTALL_RKE2_CHANNELS="stable latest testing v1.18  v1.19"
+    for INSTALL_RKE2_CHANNEL in $INSTALL_RKE2_CHANNELS;
+    do
+        version_url="${INSTALL_RKE2_CHANNEL_URL}/${INSTALL_RKE2_CHANNEL}"
+        VERSION_RKE2=$(curl -w '%{url_effective}' -L -s -S ${version_url} -o /dev/null | sed -e 's|.*/||')
+        echo $VERSION_RKE2 > $rke2_channel_dir/$INSTALL_RKE2_CHANNEL
+    done
+}
 
 output_download_result()
 {
@@ -500,5 +513,6 @@ harvester_download
 autok3s_download
 autok3s_channels
 rke2_download
+rke2_channels
 
 output_download_result
