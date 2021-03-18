@@ -469,13 +469,13 @@ rke2_download()
     do
         init_var=$( echo ${ver} | sed 's/-/+/g' )
         
-        mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/releases/download/v$var
+        mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/releases/download/v$ver
 
         file_name=$(curl -LSs -u $token -s https://api.github.com/repos/$repo/releases/tags/v$init_var | jq -r .assets[].browser_download_url | awk -F "/" '{print $NF}' )
 
         for file in $file_name;
         do
-            curl -LSs https://github.com/$repo/releases/download/v$init_var/$file -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/releases/download/v$var/$file
+            curl -LSs https://github.com/$repo/releases/download/v$init_var/$file -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/releases/download/v$ver/$file
         done
     done
 }
