@@ -1,7 +1,7 @@
 #!/bin/bash
 
 log_dir=/opt/logs/download
-log_file=download-`date +'%Y-%m-%d-%H'`.log 
+log_file=download-`date +'%Y-%m-%d-%P'`.log 
 keyword='Download the required resources successfully'
 host_data=`date "+%Y-%m-%d %H:%M:%S"`
 host_hostname=`hostname`

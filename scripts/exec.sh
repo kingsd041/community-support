@@ -2,19 +2,19 @@
 
 keyword='Download the required resources successfully'
 log_dir=/opt/logs/download
-log_file=download-`date +'%Y-%m-%d-%H'`.log
+log_file=download-`date +'%Y-%m-%d-%P'`.log
 
 # 从github下载rancher资源
-/opt/community-support/scripts/download.sh $1 > /opt/logs/download/download-`date +'%Y-%m-%d-%H'`.log
+/opt/community-support/scripts/download.sh $1 > /opt/logs/download/download-`date +'%Y-%m-%d-%P'`.log
 
 # 磁盘信息
-echo -e "\nDISK:\n`df -h | grep -E "Filesystem|xvda1"`" >> /opt/logs/download/download-`date +'%Y-%m-%d-%H'`.log
+echo -e "\nDISK:\n`df -h | grep -E "Filesystem|xvda1"`" >> /opt/logs/download/download-`date +'%Y-%m-%d-%P'`.log
 
 
 # 同步资源到oss
 cat $log_dir/$log_file | grep  "$keyword"
 if [[ $? == "0"  ]]; then
-    /usr/local/bin/ossutil --config-file=/root/.ossutilconfig cp /opt/rancher-mirror/ oss://rancher-mirror/ -u -r --snapshot-path=/opt/rancher-mirror-snapshot/ > /opt/logs/ossutil/ossutil-`date +'%Y-%m-%d-%H'`.log
+    /usr/local/bin/ossutil --config-file=/root/.ossutilconfig cp /opt/rancher-mirror/ oss://rancher-mirror/ -u -r --snapshot-path=/opt/rancher-mirror-snapshot/ > /opt/logs/ossutil/ossutil-`date +'%Y-%m-%d-%P'`.log
 fi
 
 # 发送通知
