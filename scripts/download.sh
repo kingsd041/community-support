@@ -494,6 +494,13 @@ rke2_channels()
     done
 }
 
+rke2_install()
+{
+    repo=kingsd041/rke2
+    mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/
+    curl https://raw.githubusercontent.com/kingsd041/rke2/master/install.sh -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/install.sh
+}
+
 output_download_result()
 {
     echo "`date '+%F %T %A'`:  Download the required resources successfully !!!"
@@ -517,5 +524,6 @@ autok3s_download
 autok3s_channels
 rke2_download
 rke2_channels
+rke2_install
 
 output_download_result
