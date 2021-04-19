@@ -505,7 +505,7 @@ autok3s_install()
 {
     repo=cnrancher/autok3s
     mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/
-    curl https://raw.githubusercontent.com/$repo/master/scritps/install.sh -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/install.sh
+    curl https://raw.githubusercontent.com/$repo/master/hack/lib/install.sh -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/install.sh
 }
 
 output_download_result()
