@@ -403,11 +403,13 @@ harvester_download()
 
         mkdir -p $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver
 
-        file_name=$(curl -LSs -u $token -s https://api.github.com/repos/$repo/releases/tags/v$ver | jq -r .assets[].browser_download_url | awk -F/v$ver/ '{print $2}'  )
+        # file_name=$(curl -LSs -u $token -s https://api.github.com/repos/$repo/releases/tags/v$ver | jq -r .assets[].browser_download_url | awk -F/v$ver/ '{print $2}'  )
+        file_name="harvester-amd64.iso harvester-initrd-amd64 harvester-vmlinuz-amd64"
 
         for file in $file_name;
         do
-            curl -LSs https://github.com/$repo/releases/download/v$ver/$file -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/$file
+            # curl -LSs https://github.com/$repo/releases/download/v$ver/$file -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/$file
+            curl -LSs https://releases.rancher.com/harvester/v$ver/$file -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/$file
         done
     done
 }
