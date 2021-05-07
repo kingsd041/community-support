@@ -94,6 +94,11 @@ rancher_save_images_patch
 {
     patch_dir="$(cd `dirname $0`; pwd)/templates/rancher-save-images.patch"
     patch -p0 rancher-save-images.sh  $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/rancher-save-images.sh $patch_dir
+    if [[ $? -eq 0 ]]; then
+        echo "`date '+%F %T %A'`:  rancher-save-image patch successful !!!"
+    else
+        echo "`date '+%F %T %A'`:  rancher-save-image patch failure !!!"
+    fi
 }
 
 ## Rancher release assets
