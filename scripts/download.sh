@@ -89,6 +89,13 @@ cli_download()
     done
 }
 
+## Supports access to images from AliCloud
+rancher_save_images_patch
+{
+    patch_dir="$(cd `dirname $0`; pwd)/templates/rancher-save-images.patch"
+    patch -p0 rancher-save-images.sh  $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/rancher-save-images.sh $patch_dir
+}
+
 ## Rancher release assets
 rancher_assets_download()
 {
@@ -109,6 +116,10 @@ rancher_assets_download()
         for file in $file_name;
         do
             curl -LSs https://github.com/$repo/releases/download/v$ver/$file -o $download_dir/`echo $repo | awk -F/ '{ print $2 }'`/v$ver/$file
+            if [[ $file == "rancher-save-images.sh" ]]; then
+                rancher_save_images_patch
+            fi
+            
         done
     done
 }
