@@ -479,7 +479,7 @@ rke2_download()
 
     version=$( echo ${version} | sed 's/+/-/g' )
 
-    oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/releases/download/ -d | awk -F "/" '{print $7}'  | grep v | sed 's/.//' | sort -r  -u -t "." -k1n,1 -k2n,2 -k3n,3)
+    oss_version=$(/usr/local/bin/ossutil --config-file=/root/.ossutilconfig ls oss://$oss_bucket_name/`echo $repo | awk -F/ '{ print $2 }'`/releases/download/ -d | awk -F "/" '{print $7}'  | grep v | sed 's/.//' )
 
     compare_version "$version" "$oss_version"
 
